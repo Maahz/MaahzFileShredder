@@ -4,6 +4,11 @@
 
 using namespace std;
 
+class settings
+{
+public:
+    const static int m_overwrites = 3; //How many times the file is overwriten 
+};
 
 /// <summary>
 /// Return filesize in bytes
@@ -27,16 +32,19 @@ int FileHandling::Overwrite(char* filename, streamoff fileSize)
     if (!F_Exists(filename))
         return 1;
     ofstream daFile;
-    daFile.open(filename,std::fstream::app);
-    
-    char* result = GetRandData((int64_t)fileSize);
-    if (result == NULL)
-        return 1;
-    daFile << result;
 
-    free(result);                   //Freedom!!!!!!!!
+    //Write over file multiple times
+    for (int i = 0; i < settings::m_overwrites; i++)
+    {
+        daFile.open(filename, std::fstream::binary);
+        char* result = NewRandom(fileSize);//GetRandData((int64_t)fileSize);
+        if (result == NULL)
+            return 1;
+        daFile << result;
 
-    daFile.close();
+        delete(result);                   //Freedom!!!!!!!!
+        daFile.close();
+    }
     //Testing code cout << filename << " : " << fileSize << endl;
     return 0;
 }
@@ -58,23 +66,38 @@ int FileHandling::F_Exists(char* fileName)
     }
 }
 
+//Generate random data
+char* FileHandling::NewRandom(const streamoff fileSize)
+{
+    char* data = new char[fileSize];
 
-//Function to get pseudo random data for file overwriting
+    for (int i = 0; i < fileSize - 1; i++)
+    {
+        data[i] = rand() % 9 + 1;
+    }
+
+    return data;
+}
+
+///Function to get pseudo random data for file overwriting
 char* FileHandling::GetRandData(int64_t fileSize)
 {
+    /*
     DWORD dataSize = (DWORD)fileSize;
     HCRYPTPROV hProv = 0;                       //        !!!!!!POSSIBLE BUFFER OVERFLOW!!!!!!!!!!
 
     //char* data = (char*)malloc(sizeof(char) * dataSize);  //!!!!!!MAKE SURE DATA SIZE CANT BE TOO LARGE!!!!!!!!!!
-    char* data = new char();
+    //char* data = new char();
+    BYTE data[sizeof(char) * 4816] = {};
                                                           //Test that data isnt NULL...so that compiler wont get angry
     if (data == NULL) return (char*)"Error";
 
 
-    if(!CryptGenRandom(hProv, dataSize, (unsigned char*)data))
+    if(!::CryptGenRandom(hProv, 4816, data))
     {
         return (char*)data;
     }
     else
+    */
         return (char*)"Error\n";
 }

@@ -19,6 +19,8 @@ public:
 
 	//Function to get pseudo random data for file overwriting
 	char* GetRandData(int64_t dataSize);
+
+	char* NewRandom(int64_t fileSize);
 };
 
 
